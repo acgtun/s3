@@ -1,4 +1,4 @@
-s3
+S3 (Sequence Similarity Search)
 ==
 
-Sequence Similarity Search (protein sequence) 
+

@@ -3,11 +3,14 @@
 
 #include "sdk.h"
 
-#include <vector>
-#include <fstream>
+#include <string>
 #include <iostream>
 
-using namespace std;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::string;
+
 
 /*
  A0
@@ -33,12 +36,23 @@ using namespace std;
  */
 /* B J O U X Z*/
 
-#define HASHAALEN 6 
+#define HASHLEN 6
+#define ALPHABETSIZE 8
+
 const string AA20 = "ARNDCEQGHILKMFPSTWYV";
 const string NODELABEL = " ARNDCEQGHILKMFPSTWYV";
-                   /*A   B  C  D  E   F  G  H  I   J   K   L   M  N   O   P  Q  R   S   T   U   V   W   X   Y   Z */
-const int base[] = { 0, -1, 4, 3, 6, 13, 7, 8, 9, -1, 11, 10, 12, 2, -1, 14, 5, 1, 15, 16, -1, 19, 17, -1, 18, -1 };
-const usint32_t basep[] = { 1, 20, 400, 8000, 160000, 3200000, 64000000, 1280000000 };
+
+const int AAINDEX[] =
+{ 0, -1, 4, 3, 6, 13, 7, 8, 9, -1, 11, 10, 12, 2, -1, 14, 5, 1, 15, 16, -1, 19, 17, -1, 18, -1 };
+/*A   B  C  D  E   F  G  H  I   J   K   L   M  N   O   P  Q  R   S   T   U   V   W   X   Y   Z */
+
+// [A S T] [R K E D Q] [N H] [C] [G] [I V L M] [F Y W] [P]
+//    0         1        2    3   4      5        6     7
+const int REDUCEDAAINDEX[] =
+{ 0, -1, 3, 1, 1, 6, 4, 2, 5, -1, 1, 5, 5, 2, -1, 7, 1, 1, 0, 0, -1, 5, 6, -1, 6, -1 };
+/*A   B  C  D  E  F  G  H  I   J  K  L  M  N   O  P  Q  R  S  T   U  V  W   X  Y   Z */
+
+const uint32_t BASEP[] = { 1, 8, 64, 512, 4096, 32768, 262144, 2097152 };
 
 const int BLOSUM62[][20] = {
 //A   R   N   D   C   Q   E   G   H   I   L   K   M   F   P   S   T   W   Y   V
@@ -65,76 +79,38 @@ const int BLOSUM62[][20] = {
 //  http://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#get_subsequence
 //  http://www.ncbi.nlm.nih.gov/Class/FieldGuide/BLOSUM62.txt
 
-/* Given a 6-mer amino acids sequence, translate it to a integer number.
- * Use 20-based number, A is 0, R is 1, N is 3 and so on.
- * */
-usint32_t GetHashValue(const char * strSeed);
+const double REDUCEDBLOSUM62[ALPHABETSIZE][ALPHABETSIZE] = {
+{ 1.88889,  -0.8,     -1,       -0.666667, -0.666667, -1.08333, -2.22222, -1       },
+{-0.8,       1.52,    -0.1,     -3.2,      -1.8,      -2.35,    -2.66667, -1.2     },
+{-1,        -0.1,      4,       -3,        -1,        -2.75,    -1.66667, -2       },
+{-0.666667, -3.2,     -3,        9,        -3,        -1,       -2,       -3       },
+{-0.666667, -1.8,     -1,       -3,         6,        -3.5,     -2.66667, -2       },
+{-1.08333,  -2.35,    -2.75,    -1,        -3.5,       2.3125,  -1.16667, -2.5     },
+{-2.22222,  -2.66667, -1.66667, -2,        -2.66667,  -1.16667,  4,       -3.66667 },
+{-1,        -1.2,     -2,       -3,        -2,        -2.5,     -3.66667,  7       } };
 
-/* Given a integer, translate it to a 6-mer amino acids, it's also 20-based.*/
-void DeCodeAA(const usint32_t & hashValue, char * strSeed);
-
-/* calculate base^p */
-usint32_t GetPower(const usint32_t & base, const usint32_t & p);
-
-/* M8Results is a data structure to store the results of a protein alingment, same as BLAST -m 8*/
-struct M8Results {
-  M8Results(const string& pro_name, const double& idty, const int& ali_len,
-            const int& mis, const int& gap, const usint32_t& q_start,
-            const usint32_t& q_end, const usint32_t& p_start,
-            const usint32_t& p_end, const double& e_value,
-            const double& bitScore)
-      : protein_name(pro_name),
-        identity(idty),
-        aligned_len(ali_len),
-        mismatch(mis),
-        gap_open(gap),
-        qs(q_start),
-        qe(q_end),
-        ps(p_start),
-        pe(p_end),
-        evalue(e_value),
-        bit_score(bitScore) {
+inline uint32_t Kmer2Integer(const char* kmer) {
+  uint32_t hash_value = 0;
+  for (uint32_t i = 0; i < HASHLEN; ++i) {
+    hash_value += REDUCEDAAINDEX[kmer[i] - 'A'] * BASEP[i];
   }
-  M8Results() {
-    protein_name = "";
+  return hash_value;
+}
 
-    identity = 0.0;
-    aligned_len = 0;
-    mismatch = 0;
-    gap_open = 0;
-
-    qs = 0;
-    qe = 0;
-    ps = 0;
-    pe = 0;
-
-    evalue = 0.0;
-    bit_score = 0.0;
+/* transfer the integer to 8-based number */
+inline string Integer2KmerDigit(const uint32_t& hash_value) {
+  string kmer;
+  uint32_t n = hash_value, j = 0;
+  while (n) {
+    kmer += 48 + n % ALPHABETSIZE;
+    j++;
+    n /= ALPHABETSIZE;
   }
-
-  string protein_name;
-
-  double identity;
-  int aligned_len;
-  int mismatch;
-  int gap_open;
-
-  int qs;
-  int qe;
-  int ps;
-  int pe;
-
-  double evalue;
-  double bit_score;
-
-  static bool SORT_CMP_EValue(const M8Results& a, const M8Results& b) {
-    return a.evalue < b.evalue;
+  while (j < HASHLEN) {
+    kmer += 48;
+    j++;
   }
-};
-
-/* Output the alingment results for one query to fout */
-void DisplayResults(const char* query_name, const char* database_file,
-                    const vector<M8Results>& aligned_results, const int& outfmt,
-                    ofstream& fout);
+  return kmer;
+}
 
 #endif /* BIO_UTIL_H_ */
