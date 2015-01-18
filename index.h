@@ -54,4 +54,10 @@ void BuildKmerLocation(const CProteinDB& proteindb,
 void BuildKmerNeighbors(KMERNEIGHBORS& kmer_neighbors,
                         const KMER_DB_EXIST& kmer_db_exist);
 
+void WriteIndex(const CProteinDB& proteindb,
+                const KMERDBLOCATIONS& kmer_dblocations,
+                const KMERNEIGHBORS& kmer_neighbors);
+void ReadIndex(CProteinDB& proteindb, KMERDBLOCATIONS& kmer_dblocations,
+               KMERNEIGHBORS& kmer_neighbors);
+
 #endif /* INDEX_H_ */

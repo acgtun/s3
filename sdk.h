@@ -34,7 +34,7 @@ inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
 #define FREAD_CHECK(func, size) { \
 	uint32_t s = func; \
 	if(s != size) { \
-		printf("read file error. --- %s:%s:%d\n", __FILE__, __func__, __LINE__); \
+		printf("--ERROR-- READ FILE ERROR AT %s:%s:%d\n", __FILE__, __func__, __LINE__); \
 		exit(EXIT_FAILURE); \
 	} \
 }

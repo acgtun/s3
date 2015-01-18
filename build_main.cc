@@ -18,6 +18,8 @@ int main(int argc, const char* argv[]) {
             "BUILD KMER LOCATIONS");
   TIME_INFO(BuildKmerNeighbors(kmer_neighbors, kmer_db_exist),
             "BUILD KMER NEIGHBORS");
+  TIME_INFO(WriteIndex(proteindb, kmer_dblocations, kmer_neighbors),
+            "WRITE INDEX");
 
   return 0;
 }

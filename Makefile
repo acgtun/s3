@@ -1,3 +1,11 @@
+####################################################
+#                                                  #
+#  Haifeng Chen (haifengc at usc dot edu)          #
+#  University of Southern California               #
+#  Jan 2015                                        #
+#                                                  #
+####################################################
+
 CXX := g++
 CXXFLAGS := -O3 -Wall -fmessage-length=0
 
@@ -10,8 +18,11 @@ OBJS := $(SRCS:.cc=.o)
 
 makedb: build_main.o $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
+	
+s3: aligner_main.o $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
-all: makedb
+all: makedb s3
 
 clean:
-	rm -rf makedb *.exe *.o
+	rm -rf makedb s3 *.exe *.o
