@@ -11,25 +11,25 @@ using std::string;
 using std::ifstream;
 using nearest_kmer::KNearestNeighbor;
 
-void ReadDBFile(const string& database_file, vector<string>& protein_names,
-                vector<string>& protein_seqs) {
-  INFO("READ DATABASE FILE", database_file.c_str());
-  ifstream fin(database_file.c_str());
+void ReadFASTAFile(const string& fasta_file, vector<string>& names,
+                   vector<string>& seqs) {
+  INFO("READ FASTA FILE", fasta_file.c_str());
+  ifstream fin(fasta_file.c_str());
   if (!fin.good()) {
-    ERROR_INFO("DATABASE FILE OPEN ERROR");
+    ERROR_INFO("FILE OPEN ERROR");
   }
   string sequence, line;
   while (getline(fin, line)) {
     if (line[0] == '>') {
       if (sequence.size() != 0) {
-        protein_seqs.push_back(sequence);
+        seqs.push_back(sequence);
         sequence.clear();
       }
       uint32_t space_pos = line.find_first_of(' ');
       if (space_pos == string::npos) {
-        protein_names.push_back(line.substr(1));
+        names.push_back(line.substr(1));
       } else {
-        protein_names.push_back(line.substr(1, space_pos - 1));
+        names.push_back(line.substr(1, space_pos - 1));
       }
       continue;
     }
@@ -42,14 +42,14 @@ void ReadDBFile(const string& database_file, vector<string>& protein_names,
     }
   }
   if (sequence.size() != 0) {
-    protein_seqs.push_back(sequence);
+    seqs.push_back(sequence);
   }
   fin.close();
 }
 
 void BuildProteinDB(const string& database_file, CProteinDB& proteindb) {
   vector<string> protein_names, protein_seqs;
-  ReadDBFile(database_file, protein_names, protein_seqs);
+  ReadFASTAFile(database_file, protein_names, protein_seqs);
 
   proteindb.db_length = 0;
   proteindb.num_of_proteins = 0;
@@ -78,10 +78,10 @@ void BuildProteinDB(const string& database_file, CProteinDB& proteindb) {
 
 void BuildKmerLocation(const CProteinDB& proteindb,
                        KMERDBLOCATIONS& kmer_dblocations,
-                       KMER_DB_EXIST& kmer_db_exist) {
+                       ITEM_SET& kmer_db_exist) {
   INFO("BUILD KMER LOCATIONS...");
   /* Count Bucket Size */
-  std::tr1::unordered_map<uint32_t, uint32_t> kmer_count;
+  ITEM_COUNTING kmer_count;
   for (uint32_t i = 0; i < proteindb.num_of_proteins; ++i) {
     const CProtein& protein = proteindb.proteins[i];
     if (protein.length < HASHLEN)
@@ -95,8 +95,8 @@ void BuildKmerLocation(const CProteinDB& proteindb,
   }
 
   /* allocate memory for each kmer */
-  for (std::tr1::unordered_map<uint32_t, uint32_t>::const_iterator it =
-      kmer_count.begin(); it != kmer_count.end(); ++it) {
+  for (ITEM_COUNTING::const_iterator it = kmer_count.begin();
+      it != kmer_count.end(); ++it) {
     kmer_dblocations[it->first].resize(kmer_count[it->first]);
   }
 
@@ -116,7 +116,7 @@ void BuildKmerLocation(const CProteinDB& proteindb,
 }
 
 void BuildKmerNeighbors(KMERNEIGHBORS& kmer_neighbors,
-                        const KMER_DB_EXIST& kmer_db_exist) {
+                        const ITEM_SET& kmer_db_exist) {
   INFO("BUILD KMER NEIGHBORS...");
   uint32_t num_of_kmer = static_cast<uint32_t>(pow(ALPHABETSIZE, HASHLEN));
   uint32_t max_num_of_neighbors;
@@ -229,7 +229,7 @@ void ReadIndex(CProteinDB& proteindb, KMERDBLOCATIONS& kmer_dblocations,
   for (uint32_t i = 0; i < num_of_keys; ++i) {
     FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
-    vector<DBLocation> hash_values(num_of_values);
+    vector < DBLocation > hash_values(num_of_values);
     FREAD_CHECK(
         fread(&(hash_values[0]), sizeof(DBLocation), num_of_values, fin),
         num_of_values);
@@ -242,9 +242,8 @@ void ReadIndex(CProteinDB& proteindb, KMERDBLOCATIONS& kmer_dblocations,
     FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
     vector<uint32_t> hash_values(num_of_values);
-    FREAD_CHECK(
-        fread(&(hash_values[0]), sizeof(uint32_t), num_of_values, fin),
-        num_of_values);
+    FREAD_CHECK(fread(&(hash_values[0]), sizeof(uint32_t), num_of_values, fin),
+                num_of_values);
     kmer_neighbors.insert(make_pair(hash_key, hash_values));
   }
 

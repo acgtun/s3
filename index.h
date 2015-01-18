@@ -31,7 +31,8 @@ struct DBLocation {
 
 typedef std::tr1::unordered_map<uint32_t, vector<DBLocation> > KMERDBLOCATIONS;
 typedef std::tr1::unordered_map<uint32_t, vector<uint32_t> > KMERNEIGHBORS;
-typedef std::tr1::unordered_set<uint32_t> KMER_DB_EXIST;
+typedef std::tr1::unordered_set<uint32_t> ITEM_SET;
+typedef std::tr1::unordered_map<uint32_t, uint32_t> ITEM_COUNTING;
 
 struct CProtein {
   string name;
@@ -47,12 +48,14 @@ struct CProteinDB {
   uint32_t min_protein_length;
 };
 
+void ReadFASTAFile(const string& fasta_file, vector<string>& names,
+                   vector<string>& seqs);
 void BuildProteinDB(const string& database_file, CProteinDB& proteindb);
 void BuildKmerLocation(const CProteinDB& proteindb,
                        KMERDBLOCATIONS& kmer_dblocations,
-                       KMER_DB_EXIST& kmer_db_exist);
+                       ITEM_SET& kmer_db_exist);
 void BuildKmerNeighbors(KMERNEIGHBORS& kmer_neighbors,
-                        const KMER_DB_EXIST& kmer_db_exist);
+                        const ITEM_SET& kmer_db_exist);
 
 void WriteIndex(const CProteinDB& proteindb,
                 const KMERDBLOCATIONS& kmer_dblocations,

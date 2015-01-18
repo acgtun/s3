@@ -9,7 +9,7 @@
 CXX := g++
 CXXFLAGS := -O3 -Wall -fmessage-length=0
 
-SRCS := index.cc nearest_kmer.cc option.cc
+SRCS := index.cc nearest_kmer.cc option.cc query_search.cc
         
 OBJS := $(SRCS:.cc=.o)
 

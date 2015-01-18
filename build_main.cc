@@ -11,7 +11,7 @@ int main(int argc, const char* argv[]) {
   CProteinDB proteindb;
   KMERDBLOCATIONS kmer_dblocations;
   KMERNEIGHBORS kmer_neighbors;
-  KMER_DB_EXIST kmer_db_exist;
+  ITEM_SET kmer_db_exist;
 
   TIME_INFO(BuildProteinDB(database_file, proteindb), "READ DATABASE");
   TIME_INFO(BuildKmerLocation(proteindb, kmer_dblocations, kmer_db_exist),
