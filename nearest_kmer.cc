@@ -89,13 +89,9 @@ bool KNearestNeighbor::FindCandidate(uint32_t& candidate, const int& i,
     vector <uint32_t> pathTmp;
     ShowPath(nNumNode - 1, i + 1, pathTmp);
     candidate = 0;
-    //cout << endl;
-    //cout << "cand=";
     for (uint32_t i = 1; i < pathTmp.size() - 1; i++) {
-      //cout << vNodeLabel[pathTmp[i]] - 1;
       candidate += (vNodeLabel[pathTmp[i]] - 1) * BASEP[i];
     }
-   // cout << endl;
     return true;
   }
   return false;
@@ -103,10 +99,7 @@ bool KNearestNeighbor::FindCandidate(uint32_t& candidate, const int& i,
 
 void KNearestNeighbor::UpdateWeight(const uint32_t& kmer) {
   /* set edges' weight */
-  //cout << endl;
-  //cout << "kmer = " << kmer << endl;
   string kmer_digit = Integer2KmerDigit(kmer);
-  //cout << kmer_digit << endl;
   for (int i = 0; i < nNumNode; i++) {
     for (uint32_t j = 0; j < vLinkNodeSize[i]; j++) {
       if (vNodeLabel[vLinkList[i][j]] == 0) {
@@ -118,8 +111,7 @@ void KNearestNeighbor::UpdateWeight(const uint32_t& kmer) {
       vEdgeWeight[i][j] = REDUCEDBLOSUM62[id1][id2];
     }
   }
-#ifdef debuggraph1
-  //cout << "query=" << querySeq << endl;
+#ifdef Test
   cout << "nNumNode = " << nNumNode << endl;
   for (int i = 0; i < nNumNode; i++) {
     for (uint32_t j = 0; j < vLinkNodeSize[i]; j++) {
@@ -186,17 +178,6 @@ void KNearestNeighbor::BuildDAG() {
     vLinkNodeSize[i] = 1;
   }
   vLinkNodeSize[nNumNode - 1] = 0;
-
-#ifdef TEST
-  for(int i = 0;i < nNumNode;i++) {
-    cout << " ii = " << i << endl;
-    for(int j = 0;j < vLinkNodeSize[i];j++) {
-      cout << vLinkList[i][j] << " ";
-    }
-    cout << endl;
-  }
-#endif
-
 }
 
 }  // namespace nearest_kmer
