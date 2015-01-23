@@ -74,6 +74,12 @@ void BuildProteinDB(const string& database_file, CProteinDB& proteindb) {
         proteindb.min_protein_length < protein.length ?
             proteindb.min_protein_length : protein.length;
   }
+  INFO("THE NUMBER OF PROTEINS IN DATABASE IS", proteindb.num_of_proteins);
+  INFO("THE NUMBER OF AMINO ACIDES IN DATABASE IS", proteindb.db_length);
+}
+
+bool precentageCMP(const pair<uint32_t, double>& a, const pair<uint32_t, double>& b) {
+  return a.second > b.second;
 }
 
 void BuildKmerLocation(const CProteinDB& proteindb,
@@ -82,6 +88,7 @@ void BuildKmerLocation(const CProteinDB& proteindb,
   INFO("BUILD KMER LOCATIONS...");
   /* Count Bucket Size */
   ITEM_COUNTING kmer_count;
+  UNIQUE_ITEM_COUNTING kmer_unique_protein;
   for (uint32_t i = 0; i < proteindb.num_of_proteins; ++i) {
     const CProtein& protein = proteindb.proteins[i];
     if (protein.length < HASHLEN)
@@ -90,13 +97,28 @@ void BuildKmerLocation(const CProteinDB& proteindb,
     for (uint32_t j = 0; j < size; ++j) {
       uint32_t hash_value = Kmer2Integer(&(protein.sequence[j]));
       kmer_count[hash_value]++;
-      kmer_db_exist.insert(hash_value);
+      kmer_unique_protein[hash_value].insert(i);
     }
   }
+  ///////////////////////////////////////////////////
+  /* unique protein for each k-mer */
+  vector<pair<uint32_t, double> > precentage;
+  ofstream fout("UNIQUE_ITEM_COUNTING.txt");
+  for (UNIQUE_ITEM_COUNTING::const_iterator it = kmer_unique_protein.begin();
+      it != kmer_unique_protein.end(); ++it) {
+    precentage.push_back(make_pair(it->first, (double) it->second.size() / (double) proteindb.num_of_proteins));
+  }
+  sort(precentage.begin(), precentage.end(), precentageCMP);
+  for(uint32_t i = 0;i < precentage.size();++i) {
+    fout << precentage[i].first << " " << precentage[i].second << endl;
+  }
+  fout.close();
+  ////////////////////////////////////////////////////
 
   /* allocate memory for each kmer */
   for (ITEM_COUNTING::const_iterator it = kmer_count.begin();
       it != kmer_count.end(); ++it) {
+    if(kmer_unique_protein[it->first].size() > 1000) continue;
     kmer_dblocations[it->first].resize(kmer_count[it->first]);
   }
 
@@ -109,6 +131,8 @@ void BuildKmerLocation(const CProteinDB& proteindb,
     uint32_t size = protein.length - HASHLEN;
     for (uint32_t j = 0; j < size; ++j) {
       uint32_t hash_value = Kmer2Integer(&(protein.sequence[j]));
+      if(kmer_unique_protein[hash_value].size() > 1000) continue;
+      kmer_db_exist.insert(hash_value);
       kmer_dblocations[hash_value][kmer_count[hash_value]] = DBLocation(i, j);
       kmer_count[hash_value]++;
     }
@@ -130,6 +154,7 @@ void BuildKmerNeighbors(KMERNEIGHBORS& kmer_neighbors,
     while (bpath_exist && path_id < max_num_of_neighbors) {
       bpath_exist = k_nearest_neighbor.FindCandidate(candidate, path_id,
                                                      raw_score);
+      if(raw_score < 28 && path_id > 4) break;
       if (bpath_exist && kmer_db_exist.find(candidate) != kmer_db_exist.end()) {
         kmer_neighbors[i].push_back(candidate);
       }
@@ -222,6 +247,8 @@ void ReadIndex(CProteinDB& proteindb, KMERDBLOCATIONS& kmer_dblocations,
         fread(&(protein.sequence[0]), sizeof(char), protein.length, fin),
         protein.length);
   }
+  INFO("THE NUMBER OF PROTEINS IN DATABASE IS", proteindb.num_of_proteins);
+  INFO("THE NUMBER OF AMINO ACIDES IN DATABASE IS", proteindb.db_length);
 
   // kmer_dblocations
   uint32_t num_of_keys = 0, num_of_values = 0, hash_key = 0;

@@ -36,7 +36,7 @@ using std::string;
  */
 /* B J O U X Z*/
 
-#define HASHLEN 6
+#define HASHLEN 8
 #define ALPHABETSIZE 8
 
 const string AA20 = "ARNDCEQGHILKMFPSTWYV";
@@ -52,7 +52,7 @@ const int REDUCEDAAINDEX[] =
 { 0, -1, 3, 1, 1, 6, 4, 2, 5, -1, 1, 5, 5, 2, -1, 7, 1, 1, 0, 0, -1, 5, 6, -1, 6, -1 };
 /*A   B  C  D  E  F  G  H  I   J  K  L  M  N   O  P  Q  R  S  T   U  V  W   X  Y   Z */
 
-const uint32_t BASEP[] = { 1, 8, 64, 512, 4096, 32768, 262144, 2097152 };
+const uint32_t BASEP[] = { 1, 8, 64, 512, 4096, 32768, 262144, 2097152, 16777216};
 
 const int BLOSUM62[][20] = {
 //A   R   N   D   C   Q   E   G   H   I   L   K   M   F   P   S   T   W   Y   V
@@ -88,6 +88,63 @@ const double REDUCEDBLOSUM62[ALPHABETSIZE][ALPHABETSIZE] = {
 {-1.08333,  -2.35,    -2.75,    -1,        -3.5,       2.3125,  -1.16667, -2.5     },
 {-2.22222,  -2.66667, -1.66667, -2,        -2.66667,  -1.16667,  4,       -3.66667 },
 {-1,        -1.2,     -2,       -3,        -2,        -2.5,     -3.66667,  7       } };
+
+
+/* M8Results is a data structure to store the results of a protein alingment, same as BLAST -m 8*/
+struct M8Results {
+  M8Results(const uint32_t& pro_id, const double& idty, const int& ali_len,
+            const int& mis, const int& gap, const uint32_t& q_start,
+            const uint32_t& q_end, const uint32_t& p_start,
+            const uint32_t& p_end, const double& e_value,
+            const double& bitScore)
+      : protein_id(pro_id),
+        identity(idty),
+        aligned_len(ali_len),
+        mismatch(mis),
+        gap_open(gap),
+        qs(q_start),
+        qe(q_end),
+        ps(p_start),
+        pe(p_end),
+        evalue(e_value),
+        bit_score(bitScore) {
+  }
+  M8Results() {
+    protein_id = 0;
+
+    identity = 0.0;
+    aligned_len = 0;
+    mismatch = 0;
+    gap_open = 0;
+
+    qs = 0;
+    qe = 0;
+    ps = 0;
+    pe = 0;
+
+    evalue = 0.0;
+    bit_score = 0.0;
+  }
+
+  uint32_t protein_id;
+
+  double identity;
+  int aligned_len;
+  int mismatch;
+  int gap_open;
+
+  int qs;
+  int qe;
+  int ps;
+  int pe;
+
+  double evalue;
+  double bit_score;
+
+  static bool SORT_CMP_EValue(const M8Results& a, const M8Results& b) {
+    return a.evalue < b.evalue;
+  }
+};
 
 inline uint32_t Kmer2Integer(const char* kmer) {
   uint32_t hash_value = 0;

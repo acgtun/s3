@@ -49,7 +49,7 @@ inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
 	start_t = clock(); \
 	func; \
 	end_t = clock(); \
-	printf("--INFO-- %s TAKES %.3lf SECONDS.\n", msg, (double) ((end_t - start_t) / CLOCKS_PER_SEC )); \
+	printf("--INFO-- %s TAKES %.3lf SECONDS\n", msg, (double) ((end_t - start_t) / CLOCKS_PER_SEC )); \
 }
 
 inline void INFO(const char* msg) {
@@ -62,7 +62,7 @@ inline void INFO(const char* msg, const uint64_t &val) {
   printf("--INFO-- %s %" PRIu64 "\n", msg, val);
 }
 inline void INFO(const char* msg, const uint32_t &val) {
-  printf("--INFO-- %s" "%" PRIu32 "\n", msg, val);
+  printf("--INFO-- %s %" PRIu32 "\n", msg, val);
 }
 inline void INFO(const char* msg, const int &val) {
   printf("--INFO-- %s %d\n", msg, val);
@@ -71,9 +71,9 @@ inline void INFO(const char* msg, const double &val) {
   printf("--INFO-- %s %lf\n", msg, val);
 }
 inline void INFO(const char* msg, const uint32_t & val1, const char* val2) {
-  printf("--INFO-- %s" "%" PRIu32 " %s\n", msg, val1, val2);
+  printf("--INFO-- %s %" PRIu32 " %s\n", msg, val1, val2);
 }
 inline void INFO(const char* msg, const uint64_t & val1, const char* val2) {
-  printf("--INFO-- %s" "%" PRIu64 " %s\n", msg, val1, val2);
+  printf("--INFO-- %s %" PRIu64 " %s\n", msg, val1, val2);
 }
 #endif /* SDK_H_ */

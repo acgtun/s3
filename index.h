@@ -3,12 +3,14 @@
 
 #include "sdk.h"
 
+#include <set>
 #include <string>
 #include <vector>
 #include <utility>
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
 
+using std::set;
 using std::vector;
 using std::string;
 using std::make_pair;
@@ -33,6 +35,7 @@ typedef std::tr1::unordered_map<uint32_t, vector<DBLocation> > KMERDBLOCATIONS;
 typedef std::tr1::unordered_map<uint32_t, vector<uint32_t> > KMERNEIGHBORS;
 typedef std::tr1::unordered_set<uint32_t> ITEM_SET;
 typedef std::tr1::unordered_map<uint32_t, uint32_t> ITEM_COUNTING;
+typedef std::tr1::unordered_map<uint32_t, set<uint32_t> > UNIQUE_ITEM_COUNTING;
 
 struct CProtein {
   string name;

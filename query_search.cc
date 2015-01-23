@@ -1,49 +1,41 @@
-#include "index.h"
-#include "option.h"
-#include "bio_util.h"
 #include "query_search.h"
 
-#include <queue>
-#include <functional>
-using std::greater;
-using std::priority_queue;
+#include <algorithm>
 
-void TopProteinsThreshold(const ITEM_COUNTING& protein_matched_kmer_count,
+using std::make_heap;
+using std::pop_heap;
+
+void TopProteinsThreshold(vector<uint32_t>& protein_count,
                           const uint32_t& num_of_top_proteins,
                           uint32_t& protein_count_threshold) {
-  if (protein_matched_kmer_count.size() <= num_of_top_proteins) {
-    protein_count_threshold = 0;
-    return;
+  make_heap(protein_count.begin(), protein_count.end());
+  for (unsigned j = 0; j < num_of_top_proteins; j++) {
+    pop_heap(protein_count.begin(), protein_count.end() - j);
   }
-  priority_queue<uint32_t, vector<uint32_t>, greater<uint32_t> > top_proteins;
-  for (ITEM_COUNTING::const_iterator it = protein_matched_kmer_count.begin();
-      it != protein_matched_kmer_count.end(); ++it) {
-    if (top_proteins.size() < num_of_top_proteins) {
-      top_proteins.push(it->second);
-    } else if (top_proteins.size() == num_of_top_proteins
-        && it->second > top_proteins.top()) {
-      top_proteins.pop();
-      top_proteins.push(it->second);
-    }
-  }
-  protein_count_threshold = top_proteins.top();
+
+  protein_count_threshold = protein_count.front();
 }
 
-void GetTopProteinIDS(const KMERDBLOCATIONS& kmer_dblocations,
+void GetTopProteinIDS(const uint32_t& num_of_proteins,
+                      const KMERDBLOCATIONS& kmer_dblocations,
                       const KMERNEIGHBORS& kmer_neighbors,
                       const uint32_t& num_of_top_proteins,
-                      const char* query_seq, ITEM_SET& protein_candidates_id) {
-  ITEM_COUNTING protein_matched_kmer_count;
+                      vector<uint32_t>& protein_count, const char* query_seq,
+                      vector<uint32_t>& protein_candidates_id,
+                      uint32_t& num_of_protein_candidates) {
+  memset(&(protein_count[0]), 0, sizeof(uint32_t) * num_of_proteins);
+  //ITEM_COUNTING protein_matched_kmer_count;
   uint32_t num_of_seed = strlen(query_seq) - HASHLEN + 1;
+ // cout << "xfsdax" << endl;
   for (uint32_t j = 0; j < num_of_seed; j++) {
     /* (1) Get Hash Value of the Kmer (here Kmer is seed) */
     uint32_t hash_value = Kmer2Integer(&(query_seq[j]));
-
+    //cout << j << " " << num_of_seed << " " << hash_value << endl;
     /* (2) Get Nearest Kmers from the kmer_nearest table */
     KMERNEIGHBORS::const_iterator it = kmer_neighbors.find(hash_value);
     if (it == kmer_neighbors.end())
       continue;
-
+    //cout << "it->second.size() = " << it->second.size() << endl;
     for (uint32_t c = 0; c < it->second.size(); ++c) {
       /* (3) Get the Kmer */
       uint32_t kmer = it->second[c];
@@ -53,20 +45,26 @@ void GetTopProteinIDS(const KMERDBLOCATIONS& kmer_dblocations,
 
       /* (4) Get all the protein database position which occurs the Kmer */
       for (uint32_t p = 0; p < it_kmer->second.size(); ++p) {
-        protein_matched_kmer_count[it_kmer->second[p].protein_id]++;
+        //cout << it_kmer->second[p].protein_id << endl;
+        protein_count[it_kmer->second[p].protein_id]++;
       }
     }
   }
+ // cout << "xx" << endl;
   uint32_t protein_count_threshold = 0;
-  TopProteinsThreshold(protein_matched_kmer_count, num_of_top_proteins,
+  TopProteinsThreshold(protein_count, num_of_top_proteins,
                        protein_count_threshold);
 
-  for (ITEM_COUNTING::const_iterator it = protein_matched_kmer_count.begin();
-      it != protein_matched_kmer_count.end(); ++it) {
-    if (it->second >= protein_count_threshold) {
-      protein_candidates_id.insert(it->first);
+  //uint32_t cnt = 0;
+  num_of_protein_candidates = 0;
+  for (uint32_t i = 0; i < protein_count.size(); ++i) {
+    //if(protein_count[i] != 0) cnt++;
+    if (protein_count[i] > protein_count_threshold) {
+      protein_candidates_id[num_of_protein_candidates++] = i;
+      //cout << num_of_protein_candidates << endl;
     }
   }
+  //cerr << "cnt = " << cnt << endl;
 }
 
 void QuerySearch(const CProteinDB& proteindb,
@@ -100,5 +98,33 @@ void QuerySearch(const CProteinDB& proteindb,
         }
       }
     }
+  }
+}
+
+/* Output the alingment results for one query to fout */
+void DisplayResults(const CProteinDB& proteindb, const string& query_name,
+                    const string& database_file,
+                    const vector<M8Results>& aligned_results,
+                    const uint32_t& num_of_results, const int& outfmt,
+                    ofstream& fout) {
+  if (outfmt == 7) {
+    fout << "# S3 1.0.0 Jan, 2015" << endl;
+    fout << "# Query: " << query_name << endl;
+    fout << "# Database: " << database_file << endl;
+    fout
+        << "# Fields: query id, subject id, % identity, alignment length, mismatches, "
+            "gap opens, q. start, q. end, s. start, s. end, evalue, bit score"
+        << endl;
+    fout << "# " << aligned_results.size() << " hits found" << endl;
+  }
+  for (uint32_t i = 0; i < num_of_results; i++) {
+    fout << query_name << "\t"
+        << proteindb.proteins[aligned_results[i].protein_id].name << "\t"
+        << aligned_results[i].identity << "\t" << aligned_results[i].aligned_len
+        << "\t" << aligned_results[i].mismatch << "\t"
+        << aligned_results[i].gap_open << "\t" << aligned_results[i].qs << "\t"
+        << aligned_results[i].qe << "\t" << aligned_results[i].ps << "\t"
+        << aligned_results[i].pe << "\t" << aligned_results[i].evalue << "\t"
+        << aligned_results[i].bit_score << endl;
   }
 }
