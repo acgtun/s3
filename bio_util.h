@@ -3,13 +3,17 @@
 
 #include "sdk.h"
 
+#include <vector>
 #include <string>
+#include <fstream>
 #include <iostream>
 
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::vector;
 using std::string;
+using std::ofstream;
 
 
 /*
@@ -92,12 +96,12 @@ const double REDUCEDBLOSUM62[ALPHABETSIZE][ALPHABETSIZE] = {
 
 /* M8Results is a data structure to store the results of a protein alingment, same as BLAST -m 8*/
 struct M8Results {
-  M8Results(const uint32_t& pro_id, const double& idty, const int& ali_len,
+  M8Results(const string& pro_name, const double& idty, const int& ali_len,
             const int& mis, const int& gap, const uint32_t& q_start,
             const uint32_t& q_end, const uint32_t& p_start,
             const uint32_t& p_end, const double& e_value,
             const double& bitScore)
-      : protein_id(pro_id),
+      : protein_name(pro_name),
         identity(idty),
         aligned_len(ali_len),
         mismatch(mis),
@@ -110,7 +114,7 @@ struct M8Results {
         bit_score(bitScore) {
   }
   M8Results() {
-    protein_id = 0;
+    protein_name = "";
 
     identity = 0.0;
     aligned_len = 0;
@@ -126,7 +130,7 @@ struct M8Results {
     bit_score = 0.0;
   }
 
-  uint32_t protein_id;
+  string protein_name;
 
   double identity;
   int aligned_len;
@@ -168,6 +172,33 @@ inline string Integer2KmerDigit(const uint32_t& hash_value) {
     j++;
   }
   return kmer;
+}
+
+/* Output the alingment results for one query to fout */
+inline void DisplayResults(const string& query_name,
+                           const string& database_file,
+                           const vector<M8Results>& aligned_results,
+                           const uint32_t num_of_results,
+                           const int& outfmt, ofstream& fout) {
+  if (outfmt == 7) {
+    fout << "# S3 1.0.0 Jan, 2015" << endl;
+    fout << "# Query: " << query_name << endl;
+    fout << "# Database: " << database_file << endl;
+    fout
+        << "# Fields: query id, subject id, % identity, alignment length, mismatches, "
+            "gap opens, q. start, q. end, s. start, s. end, evalue, bit score"
+        << endl;
+    fout << "# " << aligned_results.size() << " hits found" << endl;
+  }
+  for (uint32_t i = 0; i < num_of_results; i++) {
+    fout << query_name << "\t" << aligned_results[i].protein_name << "\t"
+        << aligned_results[i].identity << "\t" << aligned_results[i].aligned_len
+        << "\t" << aligned_results[i].mismatch << "\t"
+        << aligned_results[i].gap_open << "\t" << aligned_results[i].qs << "\t"
+        << aligned_results[i].qe << "\t" << aligned_results[i].ps << "\t"
+        << aligned_results[i].pe << "\t" << aligned_results[i].evalue << "\t"
+        << aligned_results[i].bit_score << endl;
+  }
 }
 
 #endif /* BIO_UTIL_H_ */

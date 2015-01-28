@@ -20,10 +20,4 @@ void GetTopProteinIDS(const uint32_t& num_of_proteins,
                       vector<uint32_t>& protein_candidates_id,
                       uint32_t& num_of_protein_candidates);
 
-void DisplayResults(const CProteinDB& proteindb, const string& query_name,
-                    const string& database_file,
-                    const vector<M8Results>& aligned_results,
-                    const uint32_t& num_of_results, const int& outfmt,
-                    ofstream& fout);
-
 #endif /* QUERY_SEARCH_H_ */

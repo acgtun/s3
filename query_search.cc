@@ -26,7 +26,7 @@ void GetTopProteinIDS(const uint32_t& num_of_proteins,
   memset(&(protein_count[0]), 0, sizeof(uint32_t) * num_of_proteins);
   //ITEM_COUNTING protein_matched_kmer_count;
   uint32_t num_of_seed = strlen(query_seq) - HASHLEN + 1;
- // cout << "xfsdax" << endl;
+  // cout << "xfsdax" << endl;
   for (uint32_t j = 0; j < num_of_seed; j++) {
     /* (1) Get Hash Value of the Kmer (here Kmer is seed) */
     uint32_t hash_value = Kmer2Integer(&(query_seq[j]));
@@ -50,7 +50,7 @@ void GetTopProteinIDS(const uint32_t& num_of_proteins,
       }
     }
   }
- // cout << "xx" << endl;
+  // cout << "xx" << endl;
   uint32_t protein_count_threshold = 0;
   TopProteinsThreshold(protein_count, num_of_top_proteins,
                        protein_count_threshold);
@@ -101,30 +101,3 @@ void QuerySearch(const CProteinDB& proteindb,
   }
 }
 
-/* Output the alingment results for one query to fout */
-void DisplayResults(const CProteinDB& proteindb, const string& query_name,
-                    const string& database_file,
-                    const vector<M8Results>& aligned_results,
-                    const uint32_t& num_of_results, const int& outfmt,
-                    ofstream& fout) {
-  if (outfmt == 7) {
-    fout << "# S3 1.0.0 Jan, 2015" << endl;
-    fout << "# Query: " << query_name << endl;
-    fout << "# Database: " << database_file << endl;
-    fout
-        << "# Fields: query id, subject id, % identity, alignment length, mismatches, "
-            "gap opens, q. start, q. end, s. start, s. end, evalue, bit score"
-        << endl;
-    fout << "# " << aligned_results.size() << " hits found" << endl;
-  }
-  for (uint32_t i = 0; i < num_of_results; i++) {
-    fout << query_name << "\t"
-        << proteindb.proteins[aligned_results[i].protein_id].name << "\t"
-        << aligned_results[i].identity << "\t" << aligned_results[i].aligned_len
-        << "\t" << aligned_results[i].mismatch << "\t"
-        << aligned_results[i].gap_open << "\t" << aligned_results[i].qs << "\t"
-        << aligned_results[i].qe << "\t" << aligned_results[i].ps << "\t"
-        << aligned_results[i].pe << "\t" << aligned_results[i].evalue << "\t"
-        << aligned_results[i].bit_score << endl;
-  }
-}

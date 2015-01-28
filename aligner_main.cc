@@ -28,7 +28,7 @@ void Matching(const CProteinDB& proteindb,
   Option::GetOption("-o", output_file);
   ofstream fout(output_file.c_str());
 
-  vector<uint32_t> protein_count(proteindb.num_of_proteins);
+  vector < uint32_t > protein_count(proteindb.num_of_proteins);
 
   uint32_t num_of_protein_candidates = 0;
   vector<uint32_t> protein_candidates_id(num_of_top_proteins);
@@ -38,11 +38,12 @@ void Matching(const CProteinDB& proteindb,
                                  proteindb.max_protein_length);
 
   INFO("START MAPPING...");
-  vector<M8Results> aligned_results(num_of_top_proteins);
+  vector < M8Results > aligned_results(num_of_top_proteins);
   uint32_t num_of_queries = query_seqs.size();
   for (uint32_t i = 0; i < num_of_queries; ++i) {
-    if(query_seqs[i].size() < HASHLEN) continue;
-   // cout << "read " << i << " ";
+    if (query_seqs[i].size() < HASHLEN)
+      continue;
+    // cout << "read " << i << " ";
     GetTopProteinIDS(proteindb.num_of_proteins, kmer_dblocations,
                      kmer_neighbors, num_of_top_proteins, protein_count,
                      query_seqs[i].c_str(), protein_candidates_id,
@@ -54,21 +55,21 @@ void Matching(const CProteinDB& proteindb,
       //cout << i << " " << protein_candidates_id[j] << endl;
       //cout << query_seqs[i] << endl;
       //for (uint32_t k = 0;
-         // k < proteindb.proteins[protein_candidates_id[j]].sequence.size();
-          //++k) {
-        //cout << proteindb.proteins[protein_candidates_id[j]].sequence[k];
-     // }
-     // cout << endl;
+      // k < proteindb.proteins[protein_candidates_id[j]].sequence.size();
+      //++k) {
+      //cout << proteindb.proteins[protein_candidates_id[j]].sequence[k];
+      // }
+      // cout << endl;
       //cout << "read " << i << endl;
       if (local_alignment.RunLocalAlignment(
           query_seqs[i], proteindb.proteins[protein_candidates_id[j]].sequence,
           res)) {
-        res.protein_id = protein_candidates_id[j];
+        res.protein_name = proteindb.proteins[protein_candidates_id[j]].name;
         aligned_results[num_of_results++] = res;
       }
     }
-    DisplayResults(proteindb, query_names[i], "", aligned_results,
-                   num_of_results, outfmt, fout);
+    DisplayResults(query_names[i], "", aligned_results, num_of_results, outfmt,
+                   fout);
   }
   fout.close();
 }
