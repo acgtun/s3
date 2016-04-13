@@ -1,15 +1,38 @@
-#include "local_alignment.h"
+/*
+ *    This file contains function for local alignment.
+ *
+ *    Copyright (C) 2015 University of Southern California
+ *
+ *    Authors: Haifeng Chen and Ting Chen
+ *
+ *    This file is part of S3.
+ *
+ *    S3 is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    S3 is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with S3.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "local_alignment.hpp"
 
 namespace local_alignment {
 
-LocalAlignment::LocalAlignment(const Evalue* _evalue, const uint32_t& _max_rows,
-                               const uint32_t& _max_cols)
+LocalAlignment::LocalAlignment(Evalue* _evalue, const uint32_t& _max_rows,
+                               const uint32_t& _max_cols, const int& _gapopen,
+                               const int& _gapextension)
     : evalue(_evalue),
       max_rows(_max_rows),
-      max_cols(_max_cols) {
-
-  Option::GetOption("-gopen", gapopen, -11);
-  Option::GetOption("-gext", gapextension, -1);
+      max_cols(_max_cols),
+      gapopen(_gapopen),
+      gapextension(_gapextension) {
 
   s.resize(max_rows + 3);
   l.resize(max_rows + 3);
@@ -109,9 +132,9 @@ void LocalAlignment::DisplayAlignment() {
   cout << "evalue: " << e_value << endl;
 }
 
-bool LocalAlignment::RunLocalAlignment(const string& U, const vector<char>& V,
+bool LocalAlignment::RunLocalAlignment(const string& U, const string& V,
                                        M8Results& res) {
-  return false;
+  return true;
   start_t = clock();
   n = U.size();
   m = V.size();

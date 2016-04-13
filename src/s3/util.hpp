@@ -1,19 +1,64 @@
-#ifndef BIO_UTIL_H_
-#define BIO_UTIL_H_
+/*
+ *    This file contains several basic functions for global use.
+ *
+ *    Copyright (C) 2015 University of Southern California
+ *
+ *    Authors: Haifeng Chen and Ting Chen
+ *
+ *    This file is part of S3.
+ *
+ *    S3 is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    S3 is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with S3.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "sdk.h"
+#ifndef UTIL_H_
+#define UTIL_H_
 
-#include <vector>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+#include <set>
 #include <string>
+#include <vector>
+#include <utility>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+
+#include <tr1/unordered_map>
+#include <tr1/unordered_set>
+
 
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::set;
+using std::pair;
 using std::vector;
 using std::string;
+using std::make_pair;
 using std::ofstream;
+using std::ifstream;
+
+using std::tr1::unordered_map;
+using std::tr1::unordered_set;
+
+typedef std::tr1::unordered_map<uint32_t, vector<pair<uint32_t, uint32_t> > > HashTable;
 
 
 /*
@@ -40,11 +85,10 @@ using std::ofstream;
  */
 /* B J O U X Z*/
 
-#define HASHLEN 8
+#define HASHLEN 3
 #define ALPHABETSIZE 8
 
 const string AA20 = "ARNDCEQGHILKMFPSTWYV";
-const string NODELABEL = " ARNDCEQGHILKMFPSTWYV";
 
 const int AAINDEX[] =
 { 0, -1, 4, 3, 6, 13, 7, 8, 9, -1, 11, 10, 12, 2, -1, 14, 5, 1, 15, 16, -1, 19, 17, -1, 18, -1 };
@@ -93,6 +137,49 @@ const double REDUCEDBLOSUM62[ALPHABETSIZE][ALPHABETSIZE] = {
 {-2.22222,  -2.66667, -1.66667, -2,        -2.66667,  -1.16667,  4,       -3.66667 },
 {-1,        -1.2,     -2,       -3,        -2,        -2.5,     -3.66667,  7       } };
 
+
+inline void MemoryAllocateCheck(void* pointer, const char* file, int line) {
+  if (pointer == NULL) {
+    fprintf(stderr, "Memory allocate error in %s at line %d\n", file, line);
+    exit(EXIT_FAILURE);
+  }
+}
+
+inline void FileOpenCheck(FILE* pfile, const char* file, int line) {
+  if (pfile == NULL) {
+    fprintf(stderr, "File open error in %s at line %d\n", file, line);
+    exit(EXIT_FAILURE);
+  }
+}
+
+#define FILE_OPEN_CHECK(pfile) (FileOpenCheck( pfile, __FILE__, __LINE__))
+#define MEMORY_ALLOCATE_CHECK(pointer)  (MemoryAllocateCheck(pointer, __FILE__, __LINE__))
+
+#define FREAD_CHECK(func, size) { \
+  uint32_t s = func; \
+  if(s != size) { \
+    fprintf(stderr, "read file error. --- %s:%s:%d\n", __FILE__, __func__, __LINE__); \
+    exit(EXIT_FAILURE); \
+  } \
+}
+
+//#define DEBUG
+#ifdef DEBUG
+#define DEBUG_INFO(msg) { \
+  fprintf(stderr, "%s\n", msg); \
+}
+#else
+#define DEBUG_INFO(msg)
+#endif
+
+#define TIME_INFO(func, msg) { \
+  clock_t start_t, end_t; \
+  start_t = clock(); \
+  func; \
+  end_t = clock(); \
+  fprintf(stderr, "[%s TAKES %.3lf SECONDS]\n", msg, \
+         (double) ((end_t - start_t) / CLOCKS_PER_SEC )); \
+}
 
 /* M8Results is a data structure to store the results of a protein alingment, same as BLAST -m 8*/
 struct M8Results {
@@ -178,10 +265,10 @@ inline string Integer2KmerDigit(const uint32_t& hash_value) {
 inline void DisplayResults(const string& query_name,
                            const string& database_file,
                            const vector<M8Results>& aligned_results,
-                           const uint32_t num_of_results,
+                           const uint32_t& num_of_results,
                            const int& outfmt, ofstream& fout) {
   if (outfmt == 7) {
-    fout << "# S3 1.0.0 Jan, 2015" << endl;
+    fout << "# S3 1.0.0 April, 2016" << endl;
     fout << "# Query: " << query_name << endl;
     fout << "# Database: " << database_file << endl;
     fout
@@ -201,4 +288,4 @@ inline void DisplayResults(const string& query_name,
   }
 }
 
-#endif /* BIO_UTIL_H_ */
+#endif /* UTIL_H_ */

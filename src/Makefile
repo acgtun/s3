@@ -20,23 +20,29 @@
 #    along with S3.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-S3 = $(shell pwd)
+ifndef SMITHLAB_CPP
+SMITHLAB_CPP=$(S3)/src/smithlab_cpp
+endif
+
+app_subdirs=s3
 
 all:
-	@make -C src S3=$(S3) OPT=1
+	@for i in $(app_subdirs); do \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(S3) OPT=1; \
+	done;
 
 install:
-	@make -C src S3=$(S3) OPT=1 install
+	@for i in $(app_subdirs); do \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(S3) OPT=1 install; \
+	done;
 
 test:
-	@make -C src S3=$(S3) test
-.PHONY: test
+	@for i in $(app_subdirs); do \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(S3) test; \
+	done;
 
 clean:
-	@make -C src S3=$(S3) clean
-.PHONY: clean
-
-distclean: clean
-	@rm -rf $(S3)/bin
-	@rm -rf $(S3)/include
-.PHONY: distclean
+	@make -C smithlab_cpp OPT=1 clean
+	@for i in $(app_subdirs); do \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(S3) clean; \
+	done;

@@ -1,7 +1,30 @@
+/*
+ *    This is the header file for calculating E-value.
+ *
+ *    Copyright (C) 2015 University of Southern California
+ *
+ *    Authors: Haifeng Chen and Ting Chen
+ *
+ *    This file is part of S3.
+ *
+ *    S3 is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    S3 is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with S3.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef EVALUE_H_
 #define EVALUE_H_
 
-#include "option.h"
+#include "util.hpp"
 #include <math.h>
 
 const double lambda_gapped = 0.267;
@@ -19,13 +42,11 @@ const double log_2 = log(2.0);
 class Evalue {
  public:
   Evalue(const uint64_t& _database_size,
-         const uint32_t& _num_of_sequences_in_database)
+         const uint32_t& _num_of_sequences_in_database,
+         const double& _evalue_threshold)
       : database_size(_database_size),
-        num_of_sequences_in_database(_num_of_sequences_in_database) {
-    //cout << "database size = " << database_size << endl;
-    //cout << "num of sequence = " << num_of_sequences_in_database << endl;
-
-    Option::GetOption("-evalue", evalue_threshold, 10);
+        num_of_sequences_in_database(_num_of_sequences_in_database),
+        evalue_threshold(_evalue_threshold) {
     log_database_size = log(database_size);
     logE = log(evalue_threshold);
 
@@ -51,9 +72,6 @@ class Evalue {
   double score_by_evalue[2];
 
  private:
-  double evalue_threshold;
-  double logE;
-
   uint64_t database_size;
   double log_database_size;
   uint32_t num_of_sequences_in_database;
@@ -69,6 +87,9 @@ class Evalue {
 
   double KMN_expected_ungapped;
   double KMN_expected_gapped;
+
+  double evalue_threshold;
+  double logE;
 };
 
 #endif /* EVALUE_H_ */

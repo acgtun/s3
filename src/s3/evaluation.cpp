@@ -1,4 +1,27 @@
-#include "evaluation.h"
+/*
+ *    This file contains functions for evaluating different protein search tools.
+ *
+ *    Copyright (C) 2015 University of Southern California
+ *
+ *    Authors: Haifeng Chen and Ting Chen
+ *
+ *    This file is part of S3.
+ *
+ *    S3 is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    S3 is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with S3.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "evaluation.hpp"
 #include <algorithm>
 
 void Evaluation::ShowReadResults(ofstream& fout) {
@@ -74,6 +97,23 @@ void Evaluation::ReadResults() {
     ofstream fout(string(results_file + "_sort.txt").c_str());
     ShowReadResults(fout);
     fout.close();
+    ////////////////////////////////
+    //statistic for start position
+    unordered_map < uint32_t, uint32_t > start_count;
+    for (ResultsType::iterator it = search_results.begin();
+        it != search_results.end(); ++it) {
+      for (uint32_t i = 0; i < it->second.size() && i < 10; ++i) {
+        start_count[it->second[0].qs]++;
+      }
+    }
+
+    cout << string(results_file + "_start_count.txt") << endl;
+    ofstream fsee(string(results_file + "_start_count.txt").c_str());
+    for (unordered_map<uint32_t, uint32_t>::const_iterator it = start_count
+        .begin(); it != start_count.end(); ++it) {
+      fsee << it->first << " " << it->second << endl;
+    }
+    fsee.close();
   }
 }
 
@@ -159,3 +199,5 @@ void Evaluation::CompareTopKHitProtein_INFO() {
   fout << double(occur) / double(total) << "\t";
   fout.close();
 }
+
+
