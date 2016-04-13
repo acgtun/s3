@@ -1,7 +1,7 @@
 /*
  *    This is the header file for calculating E-value.
  *
- *    Copyright (C) 2015 University of Southern California
+ *    Copyright (C) 2016 University of Southern California
  *
  *    Authors: Haifeng Chen and Ting Chen
  *

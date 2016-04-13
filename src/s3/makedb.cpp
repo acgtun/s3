@@ -1,7 +1,7 @@
 /*
  *    This is the main function to build index for protein database.
  *
- *    Copyright (C) 2015 University of Southern California
+ *    Copyright (C) 2016 University of Southern California
  *
  *    Authors: Haifeng Chen and Ting Chen
  *

@@ -1,5 +1,5 @@
 #
-#    Copyright (C) 2015 University of Southern California
+#    Copyright (C) 2016 University of Southern California
 #                       Andrew D. Smith and Ting Chen
 #
 #    Authors: Haifeng Chen and Ting Chen
