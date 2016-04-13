@@ -15,14 +15,13 @@
     make install
 
 
-### Indexing Genome ###
+### Indexing ###
     
     makedb -d <protein database> -o <index file>
 
 ### Searching ###
 
     s3 -i <index file> -q <read files> -o <output file> [options]
-
 
 
 ### Searching Options ###
