@@ -47,6 +47,7 @@ void BuildKmerLocation(const CProteinDB& proteindb, HashTable& hash_table);
 
 void WriteIndex(const CProteinDB& proteindb, const HashTable& hash_table,
                 const string& output_index_file);
-void ReadIndex(CProteinDB& proteindb, HashTable& hash_table);
+void ReadIndex(CProteinDB& proteindb, HashTable& hash_table,
+               const string& index_file);
 
 #endif /* REFERENCE_H_ */

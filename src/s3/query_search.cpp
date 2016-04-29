@@ -73,4 +73,3 @@ void GetTopProteinIDS(const HashTable& hash_table,
     }
   }
 }
-

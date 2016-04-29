@@ -55,7 +55,6 @@ string GetTimePre(const string& file_name) {
   return ret;
 }
 
-
 int main(int argc, const char* argv[]) {
   try {
     string localalign_file;
